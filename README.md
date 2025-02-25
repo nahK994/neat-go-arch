@@ -48,7 +48,37 @@ It does this by **separating concerns** and following **strict dependency rules*
 
 ---
 
-This looks pretty solid overall, but I’d tweak it a bit for clarity and flow. Here’s the refined version:  
+Here’s a clean and simple folder structure for a basic CRUD user operation in Go, using an in-memory store and following clean architecture principles:  
 
----
+```
+📂 simple-CRUD
+├── 📂 cmd                     # App entry point
+│   └── main.go                # Starts the Gin server
+│
+└── 📂 pkg                     # Reusable app-specific code
+   ├── 📂 entity              # Core business models
+   │   └── user.go            # User struct and validation logic
+   │
+   ├── 📂 usecase             # Business logic
+   │   └── user_usecase.go    # CRUD operations for user
+   │
+   ├── 📂 repository         # In-memory data store
+   │   └── user_repo.go      # User data operations (Create, Read, Update, Delete)
+   │
+   ├── 📂 handler            # HTTP handlers (Gin controllers)
+   │   └── user_handler.go   # Routes and request handling for user
+   │
+   └── 📂 router             # Router setup
+        └── router.go         # Gin routes and setup            
+```
+
+**What’s happening here?** 🧠  
+- `cmd/main.go` — Starts the app and initializes the router.  
+- `pkg/entity` — Core business objects like the `User` struct and its validation rules.  
+- `pkg/usecase` — Business logic for user operations (`CreateUser`, `UpdateUser`, etc.).  
+- `pkg/repository` — In-memory storage operations, simulating a simple DB.  
+- `pkg/handler` — HTTP handlers for CRUD operations, connecting the router to the use cases.  
+- `pkg/middleware` — Optional, but if you want to add RBAC or other middleware later, this is the spot.  
+- `pkg/router` — Sets up Gin routes and links them to the handlers.  
+- `config` — Future-proofing! Add config files (like env or app settings) here if you need them later.  
 
