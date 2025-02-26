@@ -58,6 +58,7 @@ It achieves this by **separating concerns** and following **strict dependency ru
    │   └── user_usecase.go    # CRUD operations for user
    │
    ├── 📂 repository          # Database interactions
+   │   ├── init.go
    │   └── user_repo.go       # User data operations (Create, Read, Update, Delete)
    │
    ├── 📂 handler             # HTTP handlers (Gin controllers)
