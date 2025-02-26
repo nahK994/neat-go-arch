@@ -9,6 +9,10 @@ import (
 var ErrEmailAlreadyExists = errors.New("email already exists")
 
 func CreateUser(user *entity.User) error {
+	if err := entity.ValidateUser(user); err != nil {
+		return err
+	}
+
 	existingUser := repository.GetUserByEmail(user.Email)
 	if existingUser != nil {
 		return ErrEmailAlreadyExists
@@ -26,6 +30,10 @@ func GetUserByID(id int) *entity.User {
 }
 
 func UpdateUser(id int, user *entity.User) error {
+	if err := entity.ValidateUser(user); err != nil {
+		return err
+	}
+
 	existingUser := repository.GetUserByEmail(user.Email)
 	if existingUser != nil {
 		return ErrEmailAlreadyExists
