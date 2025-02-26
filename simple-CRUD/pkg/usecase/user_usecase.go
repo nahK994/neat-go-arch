@@ -3,47 +3,69 @@ package usecase
 import (
 	"errors"
 	"simple-CRUD/pkg/entity"
-	"simple-CRUD/pkg/repository"
 )
 
 var ErrEmailAlreadyExists = errors.New("email already exists")
 
-func CreateUser(user *entity.User) error {
+type UserRepository interface {
+	CreateUser(name, email string, age int) error
+	GetAllUsers() ([]entity.User, error)
+	GetUserByID(id int) (*entity.User, error)
+	UpdateUser(id int, name, email string, age int) error
+	DeleteUser(id int) error
+	GetUserByEmail(email string) (*entity.User, error)
+}
+
+type UserUsecase struct {
+	repo UserRepository
+}
+
+func NewUserUsecase(repo UserRepository) *UserUsecase {
+	return &UserUsecase{
+		repo: repo,
+	}
+}
+
+func (u *UserUsecase) CreateUser(user *entity.User) error {
 	if err := entity.ValidateUser(user); err != nil {
 		return err
 	}
 
-	existingUser := repository.GetUserByEmail(user.Email)
+	existingUser, _ := u.repo.GetUserByEmail(user.Email)
 	if existingUser != nil {
 		return ErrEmailAlreadyExists
 	}
-	repository.CreateUser(user)
-	return nil
+	return u.repo.CreateUser(user.Name, user.Email, user.Age)
 }
 
-func GetAllUsers() []entity.User {
-	return repository.GetAllUsers()
+func (u *UserUsecase) GetAllUsers() []entity.User {
+	users, _ := u.repo.GetAllUsers()
+	return users
 }
 
-func GetUserByID(id int) *entity.User {
-	return repository.GetUserByID(id)
+func (u *UserUsecase) GetUserByID(id int) (*entity.User, error) {
+	user, err := u.repo.GetUserByID(id)
+	return user, err
 }
 
-func UpdateUser(id int, user *entity.User) error {
+func (u *UserUsecase) UpdateUser(id int, user *entity.User) error {
 	if err := entity.ValidateUser(user); err != nil {
 		return err
 	}
 
-	existingUser := repository.GetUserByEmail(user.Email)
+	existingUser, err := u.repo.GetUserByEmail(user.Email)
 	if existingUser != nil {
 		return ErrEmailAlreadyExists
 	}
-	if isUpdated := repository.UpdateUser(id, user); !isUpdated {
-		return errors.New("user not found")
+	if err != nil {
+		return err
+	}
+	if err := u.repo.UpdateUser(id, user.Name, user.Email, user.Age); err != nil {
+		return err
 	}
 	return nil
 }
 
-func DeleteUser(id int) error {
-	return repository.DeleteUser(id)
+func (u *UserUsecase) DeleteUser(id int) error {
+	return u.repo.DeleteUser(id)
 }

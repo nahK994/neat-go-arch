@@ -1,10 +1,23 @@
 package main
 
 import (
+	"fmt"
+	"simple-CRUD/pkg/app"
+	"simple-CRUD/pkg/handler"
+	"simple-CRUD/pkg/repository"
 	"simple-CRUD/pkg/router"
+	"simple-CRUD/pkg/usecase"
 )
 
 func main() {
-	r := router.SetupRouter()
-	r.Run(":8080")
+	config := app.GetConfig()
+
+	db, _ := repository.Init(&config.DB)
+	usecase := usecase.NewUserUsecase(db)
+	handler := handler.NewUserHandler(usecase)
+
+	r := router.SetupRouter(handler)
+
+	addr := fmt.Sprintf("%s:%d", config.REST.Domain, config.REST.Port)
+	r.Run(addr)
 }

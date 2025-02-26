@@ -1,74 +1,71 @@
 package repository
 
-import (
-	"errors"
-	"simple-CRUD/pkg/entity"
-	"sync"
-)
+import "simple-CRUD/pkg/entity"
 
-var (
-	users  = []entity.User{}
-	nextID = 1
-	mu     sync.Mutex
-)
-
-func CreateUser(user *entity.User) {
-	mu.Lock()
-	defer mu.Unlock()
-	user.ID = nextID
-	nextID++
-	users = append(users, *user)
-}
-
-func GetAllUsers() []entity.User {
-	mu.Lock()
-	defer mu.Unlock()
-	return users
-}
-
-func GetUserByID(id int) *entity.User {
-	mu.Lock()
-	defer mu.Unlock()
-	for _, user := range users {
-		if user.ID == id {
-			return &user
-		}
+func (r *Repository) CreateUser(name, email string, age int) error {
+	_, err := r.db.Exec("INSERT INTO users (name, email, age) VALUES ($1, $2, $3)", name, email, age)
+	if err != nil {
+		return err
 	}
+
 	return nil
 }
 
-func GetUserByEmail(email string) *entity.User {
-	mu.Lock()
-	defer mu.Unlock()
-	for _, user := range users {
-		if user.Email == email {
-			return &user
-		}
+func (r *Repository) GetAllUsers() ([]entity.User, error) {
+	rows, err := r.db.Query("SELECT id, name, email, age FROM users")
+	if err != nil {
+		return nil, err
 	}
+	defer rows.Close()
+
+	var users []entity.User
+	for rows.Next() {
+		var user entity.User
+		if err := rows.Scan(&user.ID, &user.Name, &user.Email, &user.Age); err != nil {
+			return nil, err
+		}
+		users = append(users, user)
+	}
+
+	return users, nil
+}
+
+func (r *Repository) GetUserByID(id int) (*entity.User, error) {
+	row := r.db.QueryRow("SELECT name, age, email FROM users WHERE id = $1", id)
+
+	var user entity.User
+	if err := row.Scan(&user.Name, &user.Age, &user.Email); err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
+
+func (r *Repository) UpdateUser(id int, name, email string, age int) error {
+	_, err := r.db.Exec("UPDATE users SET name = $1, email = $2, age = $3 WHERE id = $4", name, email, age, id)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
-func UpdateUser(id int, updatedUser *entity.User) bool {
-	mu.Lock()
-	defer mu.Unlock()
-	for i, user := range users {
-		if user.ID == id {
-			users[i] = *updatedUser
-			users[i].ID = id
-			return true
-		}
+func (r *Repository) DeleteUser(id int) error {
+	_, err := r.db.Exec("DELETE FROM users WHERE id = $1", id)
+	if err != nil {
+		return err
 	}
-	return false
+
+	return nil
 }
 
-func DeleteUser(id int) error {
-	mu.Lock()
-	defer mu.Unlock()
-	for i, user := range users {
-		if user.ID == id {
-			users = append(users[:i], users[i+1:]...)
-			return errors.New("user not found")
-		}
+func (r *Repository) GetUserByEmail(email string) (*entity.User, error) {
+	row := r.db.QueryRow("SELECT id, name, age FROM users WHERE email = $1", email)
+
+	var user entity.User
+	if err := row.Scan(&user.ID, &user.Name, &user.Age); err != nil {
+		return nil, err
 	}
-	return nil
+
+	return &user, nil
 }

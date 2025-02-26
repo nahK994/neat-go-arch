@@ -10,35 +10,45 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func CreateUser(c *gin.Context) {
+type Userhandler struct {
+	usecase *usecase.UserUsecase
+}
+
+func NewUserHandler(usecase *usecase.UserUsecase) *Userhandler {
+	return &Userhandler{
+		usecase: usecase,
+	}
+}
+
+func (h *Userhandler) CreateUser(c *gin.Context) {
 	var user *entity.User
 	if err := c.ShouldBindJSON(user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	if err := usecase.CreateUser(user); err != nil {
+	if err := h.usecase.CreateUser(user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 	c.JSON(http.StatusCreated, user)
 }
 
-func GetAllUsers(c *gin.Context) {
-	c.JSON(http.StatusOK, usecase.GetAllUsers())
+func (h *Userhandler) GetAllUsers(c *gin.Context) {
+	c.JSON(http.StatusOK, h.usecase.GetAllUsers())
 }
 
-func GetUserByID(c *gin.Context) {
+func (h *Userhandler) GetUserByID(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Param("id"))
-	user := usecase.GetUserByID(id)
-	if user == nil {
-		c.JSON(http.StatusNotFound, gin.H{"message": "User not found"})
+	user, err := h.usecase.GetUserByID(id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, user)
 }
 
-func UpdateUser(c *gin.Context) {
+func (h *Userhandler) UpdateUser(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Param("id"))
 	var user *entity.User
 	if err := c.ShouldBindJSON(&user); err != nil {
@@ -46,16 +56,16 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 
-	if err := usecase.UpdateUser(id, user); err != nil {
+	if err := h.usecase.UpdateUser(id, user); err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, user)
 }
 
-func DeleteUser(c *gin.Context) {
+func (h *Userhandler) DeleteUser(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Param("id"))
-	if err := usecase.DeleteUser(id); err != nil {
+	if err := h.usecase.DeleteUser(id); err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
 	}
