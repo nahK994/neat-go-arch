@@ -5,11 +5,11 @@ Clean Architecture is all about organizing our project in a way that’s:
 - 🧪 **Easy to test**
 - 🔌 **Easy to integrate new technology**
 
-It achieves this by- 
-**Separating concerns**- Separation the whole application into 4 building blocks, Entity, Use Case, Interface and Infructure.
-**Dependency inversion rules**- Higher-level components don’t depend on lower-level ones — they only depend on abstractions.
+It achieves this by:  
+**Separating concerns** — Dividing the application into four key building blocks: Entity, Use Case, Interface, and Infrastructure.  
+**Dependency Inversion Principle** — Higher-level components don’t depend on lower-level ones — they only depend on abstractions.
 
-Let’s break down the four key building blocks, ordered from highest priority (most important) to lowest priority (least important):
+Let’s break down these four building blocks, ordered from highest priority (most important) to lowest priority (least important):
 
 ### 1️⃣ Entity (Core Business Models) 🧠
 - 💖 **The heart of the application**, containing core business objects and basic validation rules.
@@ -17,7 +17,7 @@ Let’s break down the four key building blocks, ordered from highest priority (
 - **Example:** `User` model enforcing business rules like:
    - ✅ Users under 18 cannot create an account
    - 🚫 User email must be unique
-- **Important Note:** Field-level checks like email format, age validation belong here. But checking email uniquenes belong in the use case layer, as they require interacting with external systems (like database).
+- **Important Note:** Field-level checks like email format or age validation belong here. But checking email uniqueness belongs in the use case layer, as it requires interacting with external systems (like a database).
 
 ### 2️⃣ Use Cases (Application Logic) ⚙️🧠
 - **Define the app’s behavior** — they’re the brains of the operation.
@@ -33,7 +33,7 @@ Let’s break down the four key building blocks, ordered from highest priority (
 ### 4️⃣ Infrastructure (Tech & Tools) 🏗️🔧
 - **External dependencies** — databases, message queues, caching systems, third-party services.
 - It’s a low-level detail — the use cases should never depend directly on infrastructure.
-- **Example:** PostgreSQL repo, Redis cache, AWS SES for emails.
+- **Example:** PostgreSQL repo, Redis cache 💾, AWS SES for emails.
 
 ---
 
@@ -81,9 +81,7 @@ handler -> usecase -> repository
 ```
 **Why does `usecase -> repository` happen?**
 
-As we have discussed before, higher-level components don’t depend on lower-level ones, that's why **use case depends on an abstraction (interface)**, not the concrete implementation of the repository. This keeps the dependency direction correct:
+As we discussed before, higher-level components don’t depend on lower-level ones. That’s why **use cases depend on an abstraction (interface)**, not the concrete implementation of the repository. This keeps the dependency direction correct:
 - The **use case defines an interface** like `UserRepository`, describing required operations.
 - The **repository layer implements this interface**, handling actual database operations.
 - The **use case knows only the interface**, not the implementation — maintaining decoupling.
-
-If the **use case directly called the repository struct**, that would break the dependency rule because a higher-level policy would depend on a lower-level detail.
