@@ -19,7 +19,7 @@ It achieves this by:
 <br>
 Let’s break down these four building blocks, ordered from highest priority (most important) to lowest priority (least important):
 
-### 1️⃣ Entity (Core Business Models) 🧠
+#### 1️⃣ Entity (Core Business Models) 🧠
 - 💖 **The heart of the application**, containing core business objects and basic validation rules.
 - Should not depend on any external tech (like databases, web frameworks, or APIs).
 - **Example:** `User` model enforcing business rules like:
@@ -27,18 +27,18 @@ Let’s break down these four building blocks, ordered from highest priority (mo
    - 🚫 User email must be unique
 - **Important Note:** Field-level checks like email format or age validation belong here. But checking email uniqueness belongs in the use case layer, as it requires interacting with external systems (like a database).
 
-### 2️⃣ Use Cases (Application Logic) ⚙️🧠
+#### 2️⃣ Use Cases (Application Logic) ⚙️🧠
 - **Define the app’s behavior** — they’re the brains of the operation.
 - Orchestrate how entities interact and call interfaces for external actions.
 - Have no knowledge of HTTP, databases 🗄️, or external systems — only pure business logic.
 - **Example:** `CreateUser`, `CreditAccount`, `TransferMoney`.
 
-### 3️⃣ Interface (External Communication) 🌐📡
+#### 3️⃣ Interface (External Communication) 🌐📡
 - **Connect the outside world** to the app — HTTP handlers, CLI commands, gRPC, etc.
 - Translate external requests into something the use cases understand and send proper responses back.
 - **Example:** Gin HTTP handlers, middleware, or an API gateway.
 
-### 4️⃣ Infrastructure (Tech & Tools) 🏗️🔧
+#### 4️⃣ Infrastructure (Tech & Tools) 🏗️🔧
 - **External dependencies** — databases, message queues, caching systems, third-party services.
 - It’s a low-level detail — the use cases should never depend directly on infrastructure.
 - **Example:** PostgreSQL repo, Redis cache 💾, AWS SES for emails.
