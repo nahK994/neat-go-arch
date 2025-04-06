@@ -7,13 +7,17 @@ import (
 
 var ErrEmailAlreadyExists = errors.New("email already exists")
 
+type Password string
+type IsAdmin bool
+
 type UserRepository interface {
-	CreateUser(name, email string, age int) error
+	CreateUser(name, email string, age int, hashedPassword string) error
 	GetAllUsers() ([]entity.User, error)
 	GetUserByID(id int) (*entity.User, error)
 	UpdateUser(id int, name, email string, age int) error
 	DeleteUser(id int) error
 	GetUserByEmail(email string) (*entity.User, error)
+	GetLoginInfoByEmail(email string) (*entity.LoginInfo, error)
 }
 
 type UserUsecase struct {
@@ -35,7 +39,7 @@ func (u *UserUsecase) CreateUser(user *entity.User) error {
 	if existingUser != nil {
 		return ErrEmailAlreadyExists
 	}
-	return u.repo.CreateUser(user.Name, user.Email, user.Age)
+	return u.repo.CreateUser(user.Name, user.Email, user.Age, user.Password)
 }
 
 func (u *UserUsecase) GetAllUsers() []entity.User {
@@ -68,4 +72,9 @@ func (u *UserUsecase) UpdateUser(id int, user *entity.User) error {
 
 func (u *UserUsecase) DeleteUser(id int) error {
 	return u.repo.DeleteUser(id)
+}
+
+func (u *UserUsecase) GetLoginInfoByEmail(email string) (*entity.LoginInfo, error) {
+	info, err := u.repo.GetLoginInfoByEmail(email)
+	return info, err
 }

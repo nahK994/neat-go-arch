@@ -12,12 +12,22 @@ type CommConfig struct {
 	Domain string
 }
 
+type AppConfig struct {
+	JWT_secret      string
+	JWT_exp_minutes int
+}
+
 type Config struct {
+	App  AppConfig
 	DB   DB_config
 	REST CommConfig
 }
 
 var appConfig Config = Config{
+	App: AppConfig{
+		JWT_secret:      "secret",
+		JWT_exp_minutes: 60,
+	},
 	REST: CommConfig{
 		Port:   8000,
 		Domain: "localhost",

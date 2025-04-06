@@ -1,14 +1,36 @@
 package repository
 
-import "simple-CRUD/pkg/entity"
+import (
+	"database/sql"
+	"simple-CRUD/pkg/entity"
+)
 
-func (r *Repository) CreateUser(name, email string, age int) error {
-	_, err := r.db.Exec("INSERT INTO users (name, email, age) VALUES ($1, $2, $3)", name, email, age)
+type Repository struct {
+	db *sql.DB
+}
+
+func (r *Repository) CreateUser(name, email string, age int, hashedPassword string) error {
+	_, err := r.db.Exec("INSERT INTO users (name, email, age, hashedPassword) VALUES ($1, $2, $3, $4)", name, email, age)
 	if err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func (r *Repository) GetLoginInfoByEmail(email string) (*entity.LoginInfo, error) {
+	var pass string
+	var IsAdmin bool
+	var id int
+	err := r.db.QueryRow("SELECT id, password, is_admin FROM users WHERE email = $1", email).Scan(&id, &pass, &IsAdmin)
+	if err != nil {
+		return nil, err
+	}
+	return &entity.LoginInfo{
+		Password: pass,
+		IsAdmin:  IsAdmin,
+		Id:       id,
+	}, nil
 }
 
 func (r *Repository) GetAllUsers() ([]entity.User, error) {

@@ -6,10 +6,12 @@ import (
 )
 
 type User struct {
-	ID    int    `json:"id"`
-	Name  string `json:"name"`
-	Email string `json:"email"`
-	Age   int    `json:"age"`
+	ID       int    `json:"id"`
+	Name     string `json:"name"`
+	Email    string `json:"email"`
+	Age      int    `json:"age"`
+	IsAdmin  bool   `json:"is_admin"`
+	Password string `json:"password"`
 }
 
 func isValidEmail(email string) bool {
@@ -31,4 +33,20 @@ func ValidateUser(user *User) error {
 		return errors.New("invalid email format")
 	}
 	return nil
+}
+
+type LoginRequest struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+type GenerateTokenRequest struct {
+	Id      int
+	IsAdmin bool
+}
+
+type LoginInfo struct {
+	Id       int
+	Password string
+	IsAdmin  bool
 }

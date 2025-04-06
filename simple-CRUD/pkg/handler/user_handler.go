@@ -1,6 +1,9 @@
 package handler
 
 import (
+	"database/sql"
+	"errors"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -20,6 +23,44 @@ func NewUserHandler(usecase *usecase.UserUsecase) *Userhandler {
 	}
 }
 
+func (h *Userhandler) Login(c *gin.Context) {
+	var payload entity.LoginRequest
+	err := c.ShouldBindJSON(&payload)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, "bad request")
+		return
+	}
+
+	loginInfo, err := h.usecase.GetLoginInfoByEmail(payload.Email)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			c.JSON(http.StatusNotFound, "email not found")
+		} else {
+			c.JSON(http.StatusInternalServerError, "something unexpected happened")
+		}
+		return
+	}
+
+	if !checkPasswordHash(payload.Password, loginInfo.Password) {
+		c.JSON(http.StatusUnauthorized, "wrong email or password")
+		return
+	}
+
+	accessToken, err1 := generateJWT(&entity.GenerateTokenRequest{
+		Id:      loginInfo.Id,
+		IsAdmin: loginInfo.IsAdmin,
+	})
+	if err1 != nil {
+		log.Fatal(err1.Error())
+		c.JSON(http.StatusInternalServerError, err1.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, map[string]string{
+		"access_token": accessToken,
+	})
+}
+
 func (h *Userhandler) CreateUser(c *gin.Context) {
 	var user *entity.User
 	if err := c.ShouldBindJSON(user); err != nil {
@@ -27,6 +68,7 @@ func (h *Userhandler) CreateUser(c *gin.Context) {
 		return
 	}
 
+	user.Password, _ = hashPassword(user.Password)
 	if err := h.usecase.CreateUser(user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

@@ -12,10 +12,6 @@ import (
 	"github.com/pressly/goose"
 )
 
-type Repository struct {
-	db *sql.DB
-}
-
 func MigrateDB(dbConfig *app.DB_config) (*Repository, error) {
 	connStr := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable", dbConfig.User, dbConfig.Password, dbConfig.Domain, dbConfig.Port, dbConfig.Name)
 	db, err := sql.Open("postgres", connStr)
