@@ -11,7 +11,7 @@ type Password string
 type IsAdmin bool
 
 type UserRepository interface {
-	CreateUser(name, email string, age int, hashedPassword string) error
+	CreateUser(name, email, hashedPassword string, age int, isAdmin bool) error
 	GetAllUsers() ([]entity.User, error)
 	GetUserByID(id int) (*entity.User, error)
 	UpdateUser(id int, name, email string, age int) error
@@ -39,7 +39,7 @@ func (u *UserUsecase) CreateUser(user *entity.User) error {
 	if existingUser != nil {
 		return ErrEmailAlreadyExists
 	}
-	return u.repo.CreateUser(user.Name, user.Email, user.Age, user.Password)
+	return u.repo.CreateUser(user.Name, user.Email, user.Password, user.Age, user.IsAdmin)
 }
 
 func (u *UserUsecase) GetAllUsers() []entity.User {

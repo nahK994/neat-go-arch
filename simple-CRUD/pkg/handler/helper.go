@@ -3,6 +3,7 @@ package handler
 import (
 	"simple-CRUD/pkg/app"
 	"simple-CRUD/pkg/entity"
+	"strconv"
 	"time"
 
 	"github.com/golang-jwt/jwt"
@@ -23,9 +24,8 @@ func generateJWT(r *entity.GenerateTokenRequest) (string, error) {
 	appConfig := app.GetConfig().App
 	now := time.Now()
 	expTime := now.Add(time.Duration(appConfig.JWT_exp_minutes) * time.Minute)
-
 	claims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"sub":     r.Id,
+		"sub":     strconv.Itoa(r.Id),
 		"iss":     "simple-CRUD",
 		"exp":     expTime.Unix(),
 		"iat":     now.Unix(),

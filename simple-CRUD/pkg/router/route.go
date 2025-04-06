@@ -11,6 +11,8 @@ func SetupRouter(handler *handler.Userhandler) *gin.Engine {
 	r := gin.Default()
 
 	r.POST("/users", handler.CreateUser)
+	r.POST("/login", handler.Login)
+
 	auth := r.Group("/users")
 	auth.Use(middleware.AuthMiddleware(), middleware.AuthorizeUserMiddleware())
 	{

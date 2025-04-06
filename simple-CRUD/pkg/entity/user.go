@@ -11,7 +11,7 @@ type User struct {
 	Email    string `json:"email"`
 	Age      int    `json:"age"`
 	IsAdmin  bool   `json:"is_admin"`
-	Password string `json:"password"`
+	Password string `json:"password":omitempty`
 }
 
 func isValidEmail(email string) bool {

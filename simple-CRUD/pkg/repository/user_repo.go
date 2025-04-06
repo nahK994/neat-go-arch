@@ -9,8 +9,8 @@ type Repository struct {
 	db *sql.DB
 }
 
-func (r *Repository) CreateUser(name, email string, age int, hashedPassword string) error {
-	_, err := r.db.Exec("INSERT INTO users (name, email, age, hashedPassword) VALUES ($1, $2, $3, $4)", name, email, age)
+func (r *Repository) CreateUser(name, email, hashedPassword string, age int, isAdmin bool) error {
+	_, err := r.db.Exec("INSERT INTO users (name, email, age, is_admin, password) VALUES ($1, $2, $3, $4, $5)", name, email, age, isAdmin, hashedPassword)
 	if err != nil {
 		return err
 	}
@@ -53,10 +53,10 @@ func (r *Repository) GetAllUsers() ([]entity.User, error) {
 }
 
 func (r *Repository) GetUserByID(id int) (*entity.User, error) {
-	row := r.db.QueryRow("SELECT name, age, email FROM users WHERE id = $1", id)
+	row := r.db.QueryRow("SELECT id, name, age, email FROM users WHERE id = $1", id)
 
 	var user entity.User
-	if err := row.Scan(&user.Name, &user.Age, &user.Email); err != nil {
+	if err := row.Scan(&user.ID, &user.Name, &user.Age, &user.Email); err != nil {
 		return nil, err
 	}
 

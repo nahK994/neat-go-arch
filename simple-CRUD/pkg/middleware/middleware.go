@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"net/http"
 	"simple-CRUD/pkg/app"
 	"strconv"
@@ -11,8 +12,8 @@ import (
 )
 
 type Claims struct {
-	IsAdmin bool
-	Id      int
+	IsAdmin bool `json:"isAdmin"`
+	Id      int  `json:"id"`
 	jwt.RegisteredClaims
 }
 
@@ -27,6 +28,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		})
 
 		if err != nil || !token.Valid {
+			fmt.Println("Invalid token:", err)
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 			return
 		}

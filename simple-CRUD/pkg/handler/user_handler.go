@@ -62,14 +62,14 @@ func (h *Userhandler) Login(c *gin.Context) {
 }
 
 func (h *Userhandler) CreateUser(c *gin.Context) {
-	var user *entity.User
-	if err := c.ShouldBindJSON(user); err != nil {
+	var user entity.User
+	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	user.Password, _ = hashPassword(user.Password)
-	if err := h.usecase.CreateUser(user); err != nil {
+	if err := h.usecase.CreateUser(&user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
