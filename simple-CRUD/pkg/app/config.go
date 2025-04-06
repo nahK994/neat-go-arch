@@ -27,7 +27,7 @@ var appConfig Config = Config{
 		Password: "password",
 		Name:     "user_db",
 		CommConfig: CommConfig{
-			Port:   5000,
+			Port:   5432,
 			Domain: "localhost",
 		},
 	},

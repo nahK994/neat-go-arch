@@ -12,7 +12,7 @@ import (
 func main() {
 	config := app.GetConfig()
 
-	db, _ := repository.Init(&config.DB)
+	db, _ := repository.MigrateDB(&config.DB)
 	usecase := usecase.NewUserUsecase(db)
 	handler := handler.NewUserHandler(usecase)
 

@@ -1,0 +1,13 @@
+-- +goose Up
+CREATE TABLE IF NOT EXISTS users (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(20) NOT NULL,
+    email VARCHAR(50) NOT NULL UNIQUE,
+    age INT NOT NULL,
+    is_admin BOOLEAN DEFAULT FALSE,
+    password VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- +goose Down
+DROP TABLE IF EXISTS users;
