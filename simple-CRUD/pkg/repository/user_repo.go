@@ -33,17 +33,17 @@ func (r *Repository) GetLoginInfoByEmail(email string) (*entity.LoginInfo, error
 	}, nil
 }
 
-func (r *Repository) GetAllUsers() ([]entity.User, error) {
-	rows, err := r.db.Query("SELECT id, name, email, age FROM users")
+func (r *Repository) GetAllUsers() ([]entity.UserListResponse, error) {
+	rows, err := r.db.Query("SELECT id, name, email, is_admin FROM users")
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	var users []entity.User
+	var users []entity.UserListResponse
 	for rows.Next() {
-		var user entity.User
-		if err := rows.Scan(&user.ID, &user.Name, &user.Email, &user.Age); err != nil {
+		var user entity.UserListResponse
+		if err := rows.Scan(&user.ID, &user.Name, &user.Email, &user.IsAdmin); err != nil {
 			return nil, err
 		}
 		users = append(users, user)
@@ -52,11 +52,11 @@ func (r *Repository) GetAllUsers() ([]entity.User, error) {
 	return users, nil
 }
 
-func (r *Repository) GetUserByID(id int) (*entity.User, error) {
-	row := r.db.QueryRow("SELECT id, name, age, email FROM users WHERE id = $1", id)
+func (r *Repository) GetUserByID(id int) (*entity.UserResponse, error) {
+	row := r.db.QueryRow("SELECT id, name, age, email, is_admin FROM users WHERE id = $1", id)
 
-	var user entity.User
-	if err := row.Scan(&user.ID, &user.Name, &user.Age, &user.Email); err != nil {
+	var user entity.UserResponse
+	if err := row.Scan(&user.ID, &user.Name, &user.Age, &user.Email, &user.IsAdmin); err != nil {
 		return nil, err
 	}
 

@@ -12,8 +12,8 @@ type IsAdmin bool
 
 type UserRepository interface {
 	CreateUser(name, email, hashedPassword string, age int, isAdmin bool) error
-	GetAllUsers() ([]entity.User, error)
-	GetUserByID(id int) (*entity.User, error)
+	GetAllUsers() ([]entity.UserListResponse, error)
+	GetUserByID(id int) (*entity.UserResponse, error)
 	UpdateUser(id int, name, email string, age int) error
 	DeleteUser(id int) error
 	GetUserByEmail(email string) (*entity.User, error)
@@ -42,12 +42,12 @@ func (u *UserUsecase) CreateUser(user *entity.User) error {
 	return u.repo.CreateUser(user.Name, user.Email, user.Password, user.Age, user.IsAdmin)
 }
 
-func (u *UserUsecase) GetAllUsers() []entity.User {
+func (u *UserUsecase) GetAllUsers() []entity.UserListResponse {
 	users, _ := u.repo.GetAllUsers()
 	return users
 }
 
-func (u *UserUsecase) GetUserByID(id int) (*entity.User, error) {
+func (u *UserUsecase) GetUserByID(id int) (*entity.UserResponse, error) {
 	user, err := u.repo.GetUserByID(id)
 	return user, err
 }

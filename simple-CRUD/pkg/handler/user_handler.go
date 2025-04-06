@@ -73,7 +73,14 @@ func (h *Userhandler) CreateUser(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusCreated, user)
+	resp := entity.UserResponse{
+		ID:      user.ID,
+		Name:    user.Name,
+		Email:   user.Email,
+		Age:     user.Age,
+		IsAdmin: user.IsAdmin,
+	}
+	c.JSON(http.StatusCreated, resp)
 }
 
 func (h *Userhandler) GetAllUsers(c *gin.Context) {
@@ -102,7 +109,7 @@ func (h *Userhandler) UpdateUser(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, user)
+	c.JSON(http.StatusOK, "updated")
 }
 
 func (h *Userhandler) DeleteUser(c *gin.Context) {
