@@ -118,7 +118,7 @@ The typical flow follows:
 [Database]          // 🧬 Actual storage
 
 ```
-**Why does `usecase -> repository` happen?**
+💡 **Why does `usecase -> repository` happen?**
 
 As we discussed before, higher-level components don’t depend on lower-level ones. That’s why **use cases depend on an abstraction (interface)**, not the concrete implementation of the repository. This keeps the dependency direction correct:
 - The **use case defines an interface** like `UserRepository`, describing required operations.
