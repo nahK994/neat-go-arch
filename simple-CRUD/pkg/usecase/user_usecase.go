@@ -6,6 +6,7 @@ import (
 )
 
 var ErrEmailAlreadyExists = errors.New("email already exists")
+var ErrUnauthorized = errors.New("unauthorized")
 
 type Password string
 type IsAdmin bool
@@ -62,7 +63,7 @@ func (u *UserUsecase) UpdateUser(id int, user *entity.User) error {
 		return ErrEmailAlreadyExists
 	}
 	if err != nil {
-		return err
+		return ErrEmailAlreadyExists
 	}
 	if err := u.repo.UpdateUser(id, user.Name, user.Email, user.Age); err != nil {
 		return err
@@ -74,7 +75,24 @@ func (u *UserUsecase) DeleteUser(id int) error {
 	return u.repo.DeleteUser(id)
 }
 
-func (u *UserUsecase) GetLoginInfoByEmail(email string) (*entity.LoginInfo, error) {
-	info, err := u.repo.GetLoginInfoByEmail(email)
-	return info, err
+func (u *UserUsecase) Login(payload *entity.LoginRequest) (*entity.LoginResponse, error) {
+	loginInfo, err := u.repo.GetLoginInfoByEmail(payload.Email)
+	if err != nil {
+		return nil, err
+	}
+
+	if !checkPasswordHash(payload.Password, loginInfo.Password) {
+		return nil, ErrUnauthorized
+	}
+
+	accessToken, err1 := generateJWT(loginInfo.IsAdmin, loginInfo.Id)
+	if err1 != nil {
+		return nil, err
+	}
+
+	return &entity.LoginResponse{
+		Id:          loginInfo.Id,
+		IsAdmin:     loginInfo.IsAdmin,
+		AccessToken: accessToken,
+	}, nil
 }

@@ -55,9 +55,10 @@ type LoginRequest struct {
 	Password string `json:"password"`
 }
 
-type GenerateTokenRequest struct {
-	Id      int
-	IsAdmin bool
+type LoginResponse struct {
+	Id          int    `json:"id"`
+	IsAdmin     bool   `json:"is_admin"`
+	AccessToken string `json:"access_token"`
 }
 
 type LoginInfo struct {

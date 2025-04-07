@@ -1,9 +1,6 @@
 package handler
 
 import (
-	"database/sql"
-	"errors"
-	"log"
 	"net/http"
 	"strconv"
 
@@ -11,7 +8,13 @@ import (
 	"simple-CRUD/pkg/usecase"
 
 	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
 )
+
+func hashPassword(password string) (string, error) {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+	return string(bytes), err
+}
 
 type Userhandler struct {
 	usecase *usecase.UserUsecase
@@ -31,34 +34,21 @@ func (h *Userhandler) Login(c *gin.Context) {
 		return
 	}
 
-	loginInfo, err := h.usecase.GetLoginInfoByEmail(payload.Email)
+	loginInfo, err := h.usecase.Login(&payload)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			c.JSON(http.StatusNotFound, "email not found")
+		if err.Error() == usecase.ErrEmailAlreadyExists.Error() {
+			c.JSON(http.StatusBadRequest, "email already exists")
+			return
+		} else if err.Error() == usecase.ErrUnauthorized.Error() {
+			c.JSON(http.StatusUnauthorized, "unauthorized")
+			return
 		} else {
-			c.JSON(http.StatusInternalServerError, "something unexpected happened")
+			c.JSON(http.StatusUnauthorized, "unauthorized")
+			return
 		}
-		return
 	}
 
-	if !checkPasswordHash(payload.Password, loginInfo.Password) {
-		c.JSON(http.StatusUnauthorized, "wrong email or password")
-		return
-	}
-
-	accessToken, err1 := generateJWT(&entity.GenerateTokenRequest{
-		Id:      loginInfo.Id,
-		IsAdmin: loginInfo.IsAdmin,
-	})
-	if err1 != nil {
-		log.Fatal(err1.Error())
-		c.JSON(http.StatusInternalServerError, err1.Error())
-		return
-	}
-
-	c.JSON(http.StatusOK, map[string]string{
-		"access_token": accessToken,
-	})
+	c.JSON(http.StatusOK, loginInfo)
 }
 
 func (h *Userhandler) CreateUser(c *gin.Context) {
