@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"simple-CRUD/pkg/entity"
+	"simple-CRUD/pkg/errors"
 	"simple-CRUD/pkg/usecase"
 
 	"github.com/gin-gonic/gin"
@@ -36,14 +37,14 @@ func (h *Userhandler) Login(c *gin.Context) {
 
 	loginInfo, err := h.usecase.Login(&payload)
 	if err != nil {
-		if err.Error() == usecase.ErrEmailAlreadyExists.Error() {
-			c.JSON(http.StatusBadRequest, "email already exists")
+		if err.Error() == errors.ErrEmailNotExists.Error() {
+			c.JSON(http.StatusBadRequest, "email not exists")
 			return
-		} else if err.Error() == usecase.ErrUnauthorized.Error() {
+		} else if err.Error() == errors.ErrUnauthorized.Error() {
 			c.JSON(http.StatusUnauthorized, "unauthorized")
 			return
 		} else {
-			c.JSON(http.StatusUnauthorized, "unauthorized")
+			c.JSON(http.StatusInternalServerError, err.Error())
 			return
 		}
 	}
@@ -59,12 +60,20 @@ func (h *Userhandler) CreateUser(c *gin.Context) {
 	}
 
 	user.Password, _ = hashPassword(user.Password)
-	if err := h.usecase.CreateUser(&user); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+	id, err := h.usecase.CreateUser(&user)
+
+	if err != nil {
+		if err.Error() == errors.ErrEmailAlreadyExists.Error() {
+			c.JSON(http.StatusBadRequest, "email already exists")
+			return
+		} else {
+			c.JSON(http.StatusInternalServerError, err.Error())
+			return
+		}
 	}
+
 	resp := entity.UserResponse{
-		ID:      user.ID,
+		ID:      id,
 		Name:    user.Name,
 		Email:   user.Email,
 		Age:     user.Age,
@@ -95,9 +104,15 @@ func (h *Userhandler) UpdateUser(c *gin.Context) {
 		return
 	}
 
-	if err := h.usecase.UpdateUser(id, user); err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
-		return
+	err := h.usecase.UpdateUser(id, user)
+	if err != nil {
+		if err.Error() == errors.ErrEmailAlreadyExists.Error() {
+			c.JSON(http.StatusBadRequest, "email already exists")
+			return
+		} else {
+			c.JSON(http.StatusInternalServerError, err.Error())
+			return
+		}
 	}
 	c.JSON(http.StatusOK, "updated")
 }

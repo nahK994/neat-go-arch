@@ -1,23 +1,17 @@
 package usecase
 
 import (
-	"errors"
 	"simple-CRUD/pkg/entity"
+	"simple-CRUD/pkg/errors"
 )
 
-var ErrEmailAlreadyExists = errors.New("email already exists")
-var ErrUnauthorized = errors.New("unauthorized")
-
-type Password string
-type IsAdmin bool
-
 type UserRepository interface {
-	CreateUser(name, email, hashedPassword string, age int, isAdmin bool) error
+	CreateUser(name, email, hashedPassword string, age int, isAdmin bool) (entity.UserId, error)
 	GetAllUsers() ([]entity.UserListResponse, error)
 	GetUserByID(id int) (*entity.UserResponse, error)
 	UpdateUser(id int, name, email string, age int) error
 	DeleteUser(id int) error
-	GetUserByEmail(email string) (*entity.User, error)
+	EmailExists(email string) (bool, error)
 	GetLoginInfoByEmail(email string) (*entity.LoginInfo, error)
 }
 
@@ -31,16 +25,22 @@ func NewUserUsecase(repo UserRepository) *UserUsecase {
 	}
 }
 
-func (u *UserUsecase) CreateUser(user *entity.User) error {
+func (u *UserUsecase) CreateUser(user *entity.User) (int, error) {
 	if err := entity.ValidateUser(user); err != nil {
-		return err
+		return -1, err
 	}
 
-	existingUser, _ := u.repo.GetUserByEmail(user.Email)
-	if existingUser != nil {
-		return ErrEmailAlreadyExists
+	existingUser, _ := u.repo.EmailExists(user.Email)
+	if existingUser {
+		return -1, errors.ErrEmailAlreadyExists
 	}
-	return u.repo.CreateUser(user.Name, user.Email, user.Password, user.Age, user.IsAdmin)
+
+	id, err := u.repo.CreateUser(user.Name, user.Email, user.Password, user.Age, user.IsAdmin)
+	if err != nil {
+		return -1, err
+	}
+
+	return int(id), nil
 }
 
 func (u *UserUsecase) GetAllUsers() []entity.UserListResponse {
@@ -58,12 +58,12 @@ func (u *UserUsecase) UpdateUser(id int, user *entity.User) error {
 		return err
 	}
 
-	existingUser, err := u.repo.GetUserByEmail(user.Email)
-	if existingUser != nil {
-		return ErrEmailAlreadyExists
+	existingUser, err := u.repo.EmailExists(user.Email)
+	if existingUser {
+		return errors.ErrEmailAlreadyExists
 	}
 	if err != nil {
-		return ErrEmailAlreadyExists
+		return err
 	}
 	if err := u.repo.UpdateUser(id, user.Name, user.Email, user.Age); err != nil {
 		return err
@@ -78,11 +78,11 @@ func (u *UserUsecase) DeleteUser(id int) error {
 func (u *UserUsecase) Login(payload *entity.LoginRequest) (*entity.LoginResponse, error) {
 	loginInfo, err := u.repo.GetLoginInfoByEmail(payload.Email)
 	if err != nil {
-		return nil, err
+		return nil, errors.ErrEmailNotExists
 	}
 
 	if !checkPasswordHash(payload.Password, loginInfo.Password) {
-		return nil, ErrUnauthorized
+		return nil, errors.ErrUnauthorized
 	}
 
 	accessToken, err1 := generateJWT(loginInfo.IsAdmin, loginInfo.Id)

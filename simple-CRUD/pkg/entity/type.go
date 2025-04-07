@@ -5,6 +5,10 @@ import (
 	"regexp"
 )
 
+type UserId int
+type Password string
+type IsAdmin bool
+
 type User struct {
 	ID       int    `json:"id"`
 	Name     string `json:"name"`

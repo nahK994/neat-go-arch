@@ -3,19 +3,21 @@ package repository
 import (
 	"database/sql"
 	"simple-CRUD/pkg/entity"
+	"simple-CRUD/pkg/errors"
 )
 
 type Repository struct {
 	db *sql.DB
 }
 
-func (r *Repository) CreateUser(name, email, hashedPassword string, age int, isAdmin bool) error {
-	_, err := r.db.Exec("INSERT INTO users (name, email, age, is_admin, password) VALUES ($1, $2, $3, $4, $5)", name, email, age, isAdmin, hashedPassword)
+func (r *Repository) CreateUser(name, email, hashedPassword string, age int, isAdmin bool) (entity.UserId, error) {
+	var id int
+	err := r.db.QueryRow("INSERT INTO users (name, email, age, is_admin, password) VALUES ($1, $2, $3, $4, $5) RETURNING id", name, email, age, isAdmin, hashedPassword).Scan(&id)
 	if err != nil {
-		return err
+		return -1, errors.ErrEmailAlreadyExists
 	}
 
-	return nil
+	return entity.UserId(id), nil
 }
 
 func (r *Repository) GetLoginInfoByEmail(email string) (*entity.LoginInfo, error) {
@@ -81,13 +83,12 @@ func (r *Repository) DeleteUser(id int) error {
 	return nil
 }
 
-func (r *Repository) GetUserByEmail(email string) (*entity.User, error) {
-	row := r.db.QueryRow("SELECT id, name, age FROM users WHERE email = $1", email)
-
-	var user entity.User
-	if err := row.Scan(&user.ID, &user.Name, &user.Age); err != nil {
-		return nil, err
+func (r *Repository) EmailExists(email string) (bool, error) {
+	var exists bool
+	query := "SELECT EXISTS(SELECT 1 FROM users WHERE email = $1)"
+	err := r.db.QueryRow(query, email).Scan(&exists)
+	if err != nil {
+		return false, err
 	}
-
-	return &user, nil
+	return exists, nil
 }
