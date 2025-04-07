@@ -31,17 +31,22 @@ Let’s break down these four building blocks, ordered from highest priority (mo
 - **Define the app’s behavior** — they’re the brains of the operation.
 - Orchestrate how entities interact and call interfaces for external actions.
 - Have no knowledge of HTTP, databases 🗄️, or external systems — only pure business logic.
-- **Example:** `CreateUser`, `CreditAccount`, `TransferMoney`.
+- **Example:** `CreateUser`, `DeleteUser`, `Login`.
 
 #### 3️⃣ Interface (External Communication) 🌐📡
-- **Connect the outside world** to the app — HTTP handlers, CLI commands, gRPC, etc.
+- **Connect the outside world** to the app.
 - Translate external requests into something the use cases understand and send proper responses back.
-- **Example:** Gin HTTP handlers, middleware, or an API gateway.
+- Includes:
+  - 🧑‍✈️ Handlers (Gin)
+  - 🧼 Middleware (JWT based authentication, authorization)
+- **Example:**  
+   `user_handler.go` manages routes like `POST /signup`, `POST /login`.
 
-#### 4️⃣ Infrastructure (Tech & Tools) 🏗️🔧
+#### 4️⃣ Infrastructure (External Stuff) 🏗️🔧
 - **External dependencies** — databases, message queues, caching systems, third-party services.
 - It’s a low-level detail — the use cases should never depend directly on infrastructure.
-- **Example:** PostgreSQL repo, Redis cache 💾, AWS SES for emails.
+- **Example:**  
+   `user_repo.go` handles SQL queries. `migrate.go` sets up DB.
 
 ---
 
@@ -50,36 +55,68 @@ Let’s see Clean Architecture in action with a simple CRUD project.
 ### 🗂️ `simple-CRUD` Folder Structure
 ```
 📂 simple-CRUD
-├── 📂 cmd                    # App entry point
-│   └── main.go               # Starts the Gin server
+├── 📂 cmd
+│   └── main.go                  # Entry point
 │
-└── 📂 pkg                    # Reusable app-specific code
-   ├── 📂 app                 # App config
-   │   └── config.go          
-   │
-   ├── 📂 entity              # Core business models
-   │   └── user.go            # User struct and validation logic
-   │
-   ├── 📂 usecase             # Business logic
-   │   └── user_usecase.go    # CRUD operations for user
-   │
-   ├── 📂 repository          # Database interactions
-   │   ├── init.go
-   │   └── user_repo.go       # User data operations (Create, Read, Update, Delete)
-   │
-   ├── 📂 handler             # HTTP handlers (Gin controllers)
-   │   └── user_handler.go    # Routes and request handling for user
-   │
-   └── 📂 router              # Router setup
-        └── router.go         # Gin routes and setup            
+├── 📄 docker-compose.yml        # Docker setup
+├── 📄 Makefile                  # Task runner
+├── 📄 go.mod / go.sum           # Dependencies
+│
+└── 📂 pkg
+    ├── 📂 app                   # App config
+    │   └── config.go
+    │
+    ├── 📂 entity                # Core business types
+    │   └── type.go
+    │
+    ├── 📂 errors                # Custom error types
+    │   └── errors.go
+    │
+    ├── 📂 handler               # HTTP handlers (Gin)
+    │   └── user_handler.go
+    │
+    ├── 📂 middleware            # JWT auth, logging, etc.
+    │   └── middleware.go
+    │
+    ├── 📂 repository            # Database interactions
+    │   ├── migrate.go
+    │   ├── migrations
+    │   │   └── 00001_create_user_table.sql
+    │   └── user_repo.go
+    │
+    ├── 📂 router                # Route definitions
+    │   └── route.go
+    │
+    └── 📂 usecase              # Business logic
+        ├── helper.go           # Token generation, hashing
+        └── user_usecase.go     # Signup, login, user logic          
 ```
+
+---
+
+### How to run it
+Prerequisites:
+Docker
+Gin
+Make
 
 ---
 
 ### 🧠 How the Layers Interact
 The typical flow follows:
 ```
-[HTTP Request] -> [Handler] -> [Use Case] -> [Repository] -> [Database]
+[HTTP Request] 
+    ↓
+[Middleware]        // 🔐 Authentication & Authorization
+    ↓
+[Handler]           // 🎯 Route handling (only gets here *if* auth passes)
+    ↓
+[Use Case]          // 🧠 Executes business logic (assumes user is already validated)
+    ↓
+[Repository]        // 🗄️ Interacts with DB
+    ↓
+[Database]          // 🧬 Actual storage
+
 ```
 **Why does `usecase -> repository` happen?**
 
