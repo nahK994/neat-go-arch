@@ -94,11 +94,13 @@ Let’s see Clean Architecture in action with a simple CRUD project.
 
 ---
 
-### How to run it
-Prerequisites:
-Docker
-Gin
-Make
+### 🧰 Prerequisites
+
+Make sure you've got these tools installed first:
+
+- 🐳 **Docker** — for spinning up Postgres
+- ⚙️ **Make** — to run tasks with a single command  
+- 🍸 **Go + Gin** — the fast HTTP web framework
 
 ---
 
